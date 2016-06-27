@@ -1,0 +1,159 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+	<meta charset="utf-8" />
+    <script type="text/javascript">
+        //保存画布尺寸
+        var cwidth = 900;
+        var cheight = 350;
+
+        var ctx;
+
+        //保存所有对象
+        var everything = [];
+        //当前墙
+        var curwall;
+        //墙宽
+        var wallwidth = 5;
+        //墙的颜色
+        var wallstyle = "red";
+        //所有墙
+        var walls = [];
+        //标示正在通过拖动鼠标构建墙
+        var inmotion = false;
+        //token移动单位
+        var unit = 10;
+
+        //token类
+        function Token(sx, sy, rad, stylestring, n)
+        {
+            this.sx = sx;
+            this.sy = sy;
+            this.rad = rad;
+            this.draw = drawtoken;
+            this.n = n;
+            this.angle = (2 * Math.PI) / n;
+            this.moveit = movetoken;
+            this.fillstyle = stylestring;
+        }
+
+
+        //绘制多边形
+        function drawtoken() {
+            ctx.fillStyle = this.fillstyle;
+            var i;
+            var rad = this.rad;
+            ctx.beginPath();
+
+            var startX = this.sx + rad * Math.cos(-.5 * this.angle);
+            var startY = this.sy + rad * Math.sin(-.5 * this.angle);
+            ctx.moveTo(startX, startY);
+
+            for (i = 1; i < this.n; i++) {
+                var lineToX = this.sx + rad * Math.cos((i - .5) * this.angle);
+                var lineToY = this.sy + rad * Math.sin((i - .5) * this.angle);
+                ctx.lineTo(lineToX, lineToY);
+            }
+
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function movetoken(dx, dy)
+        {
+            this.sx += dx;
+            this.sy += dy;
+
+            var i;
+            var wall;
+            for (i = 0; i < walls.length; i++)
+            {//和所有的墙检测是否相交
+                wall = walls[i];
+                if (intersect(wall.sx, wall.sy, wall.fx, wall.fy, this.sx, this.sy, this.rad))
+                {//和墙碰撞，回到原位
+                    this.sx -= dx;
+                    this.sy -= dy;
+                    break;
+                }
+            }
+        }
+
+        function Wall(sx, sy, fx, fy, width, stylestring)
+        {
+            this.sx = sx;
+            this.sy = sy;
+            this.fx = fx;
+            this.fy = fy;
+            this.width = width;
+            this.draw = drawAline;
+            this.strokestyle = stylestring;
+        }
+
+        function drawAline()
+        {
+            ctx.lineWidth = this.width;
+            ctx.strokeStyle = this.strokestyle;
+            ctx.beginPath();
+            ctx.moveTo(this.sx, this.sy);
+            ctx.lineTo(this.fx, this.fy);
+            ctx.stroke();
+        }
+
+        var mypent = new Token(100, 100, 20, "blue", 5);
+
+        everything.push(mypent);
+
+        function init()
+        {
+            ctx = document.getElementById("canvas").getContext("2d");
+
+            var canvas1 = document.getElementById("canvas");
+            canvas1.addEventListener("mousedown", startwall, false);
+            canvas1.addEventListener("mousemove", stretchwall, false);
+            canvas1.addEventListener("mouseup", finish, false);
+
+            window.addEventListener("keydown", getKeyAndMove, false);
+
+            drawAll();
+
+        }
+
+        function startwall(ev)
+        {
+            var mx;
+            var my;
+
+            if (ev.layerX || ev.layerX == 0)
+            {
+                mx = ev.layerX;
+                my = ev.layerY;
+            }
+            else if(ev.offsetX||ev.offsetX==0){
+                mx = ev.offsetX;
+                my = ev.offsetY;
+            }
+
+            curwall = new Wall(mx, my, mx + 1, mx + 1, wallwidth, wallstyle);
+
+            inmotion = true;
+
+            everything.push(curwall);
+            drawAll();
+        }
+
+        function stretchwall(ev)
+        {
+            if (inmotion)
+            {
+
+            }
+        }
+
+    </script>
+</head>
+<body>
+    <canvas id="canvas" width="900" height="400"></canvas>
+</body>
+</html>

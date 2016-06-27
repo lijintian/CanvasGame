@@ -1,0 +1,289 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+	<meta charset="utf-8" />
+    <script type="text/javascript">
+        var ctx;
+        var firstpick = true;
+        var firstcard;
+        var secondcard;
+        //牌面背景颜色
+        var frontbgcolor = "rgb(251,215,73)";
+        //多边形颜色
+        var polycolor = "rgb(251,11,0)";
+        //牌背面颜色
+        var backcolor = "rgb(128,0,128)";
+        //桌面颜色
+        var tablecolor = "reb(255,255,255)";
+        //多边型半径
+        var cardrad = 30;
+        //数组用于保存一副牌
+        var deck = [];
+        //第一张牌的位置
+        var firstsx = 30;
+        var firstsy = 50;
+        //牌间间隔
+        var margin = 30;
+        //牌宽，牌高
+        var cardwidth = 4 * cardrad;
+        var cardheight = 4 * cardrad;
+        //控制是否可以继续选（上次选完出结果才允许继续选）
+        var canContinue = true;
+
+        //是否匹配
+        var matched;
+        //耗时
+        var starttime
+
+        function Card(sx, sy, swidth, sheight, info)
+        {
+            this.sx = sx;
+            this.sy = sy;
+            this.swidth = swidth;
+            this.sheight = sheight;
+            this.info = info;
+            this.draw = drawback;
+        }
+
+        //建立一副牌
+        function MakeDeck()
+        {
+            var i;
+            var acard;
+            var bcard;
+            var cx = firstsx;
+            var cy = firstsy;
+            
+            for (i = 3; i < 7; i++)
+            {//生成三角形到八边形的牌
+                acard = new Card(cx, cy, cardwidth, cardheight, i);
+                deck.push(acard);
+
+                bcard = new Card(cx, cy + cardheight + margin, cardwidth, cardheight, i);
+                deck.push(bcard);
+
+                cx = cx + cardwidth + margin;
+
+                acard.draw();
+                bcard.draw();
+
+            }
+
+            Shuffle();
+        }
+
+
+        //洗牌
+        function Shuffle()
+        {
+            var i;
+            var k;
+            var holder;
+            var dl = deck.length;
+            var nt;
+
+            for (nt = 0; nt < 3 * dl; nt++)
+            {//随机交换3*dl次
+
+                //随机生成0到dl-1的下标
+                i = Math.floor(Math.random() * dl);
+                k = Math.floor(Math.random() * dl);
+                holder = deck[i].info;
+                deck[i].info = deck[k].info;
+                deck[k].info = holder;
+            }
+
+        }
+
+        //多边形
+        function PoloyCard(sx, sy, rad, n)
+        {
+            this.sx = sx;
+            this.sy = sy;
+            this.rad = rad;
+            this.draw = drawpoly;
+            this.n = n;
+            this.angle = (2 * Math.PI) / n;//弧度360/n
+        }
+
+        //绘制多边形
+        function drawpoly()
+        {
+            ctx.fillStyle = frontbgcolor;
+            ctx.fillRect(this.sx - 2 * this.rad, this.sy - 2 * this.rad, 4 * this.rad, 4 * this.rad);
+
+            ctx.beginPath();
+            ctx.fillStyle = polycolor;
+            var i;
+            var rad = this.rad;
+
+            var startX=this.sx + rad * Math.cos(-.5 * this.angle);
+            var startY = this.sy + rad * Math.sin(-.5 * this.angle);
+            ctx.moveTo(startX,startY);
+
+            for (i = 1; i < this.n; i++)
+            {
+                var lineToX=this.sx + rad * Math.cos((i-.5) * this.angle);
+                var lineToY = this.sy + rad * Math.sin((i - .5) * this.angle);
+                ctx.lineTo(lineToX, lineToY);
+            }
+            
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        //绘制背景
+        function drawback()
+        {
+            ctx.fillStyle = backcolor;
+            ctx.fillRect(this.sx,this.sy,this.swidth,this.sheight);
+        }
+
+        function choose(ev)
+        {
+            //鼠标位置
+            var mx;
+            var my;
+            var pick1;
+            var pick2;
+
+            if (ev.layerX || ev.layerx == 0) {
+                mx = ev.layerX;
+                my = ev.layerY;
+            }
+            else if(ev.offsetX||ev.offsetX==0) {
+                mx = ev.offsetX;
+                my = ev.offsetY;
+            }
+
+            var i;
+            if (canContinue)
+            {
+                for (i = 0; i < deck.length; i++) {
+                    var card = deck[i];
+
+                    if (card.sx >= 0) {//看牌是否删除
+                        if (mx > card.sx && mx < card.sx + card.swidth
+                            && my > card.sy && my < card.sy + card.sheight
+                            ) {
+
+                            if (i < deck.length) {
+                                if (firstpick) {
+                                    firstcard = i;
+                                    firstpick = false;
+                                    pick1 = new PoloyCard(card.sx + cardwidth * .5, card.sy + cardheight * .5, cardrad, card.info);
+
+                                    pick1.draw();
+                                    break;
+                                }
+                                else {
+                                    secondcard = i;
+                                    if (firstcard == secondcard) {
+                                        break;
+                                    }
+                                    pick2 = new PoloyCard(card.sx + cardwidth * .5, card.sy + cardheight * .5, cardrad, card.info);
+                                    pick2.draw();
+
+                                    if (deck[i].info == deck[firstcard].info) {
+                                        matched = true;
+
+                                        var nm = 1 + Number(document.f.count.value);
+                                        document.f.count.value = String(nm);
+
+                                        if (nm >= .5 * deck.length) {//游戏是否结束
+                                            var now = new Date();
+                                            var nt = Number(now.getTime());
+
+                                            var seconds = Math.floor(.5 + (nt-starttime) / 1000);
+                                            document.f.elapsed.value = String(seconds);
+                                        }
+                                    }
+                                    else {
+                                        matched = false;
+                                    }
+
+                                    firstpick = true;
+
+                                    setTimeout(flipback, 1000);
+                                    canContinue = false;
+                                    break;
+                                }
+                            }
+                        }
+
+
+
+                    }
+                }
+            }
+          
+        }
+
+        function flipback()
+        {
+            if (!matched) {//没有选对，重新绘制牌背面
+                deck[firstcard].draw();
+                deck[secondcard].draw();
+            }
+            else {
+                ctx.fillStyle = tablecolor;
+                ctx.fillRect(deck[secondcard].sx, deck[secondcard].sy, deck[secondcard].swidth, deck[secondcard].sheight);
+                ctx.fillRect(deck[firstcard].sx, deck[firstcard].sy, deck[firstcard].swidth, deck[firstcard].sheight);
+
+                deck[secondcard].sx = -1;
+                deck[firstcard].sx = -1;
+            }
+
+            canContinue = true;
+        }
+
+        function init()
+        {
+            ctx = document.getElementById("canvas").getContext("2d");
+
+            canvas1 = document.getElementById("canvas");
+            canvas1.addEventListener("click", choose, false);
+
+            MakeDeck();
+
+            document.f.count.value = "0";
+            document.f.elapsed.value = "";
+
+            starttime = new Date();
+
+            starttime = Number(starttime.getTime());
+
+            Shuffle();
+
+            //一开始全部显示3秒让人记忆
+            for (var i = 0; i < deck.length; i++) {
+                var card = deck[i];
+                var picture = new PoloyCard(card.sx + cardwidth * .5, card.sy + cardheight * .5, cardrad, card.info);
+                picture.draw();
+            }
+
+            //三秒后全部显示背面
+            setTimeout(AllDrawBack, 3000);
+        }
+
+        function AllDrawBack()
+        {
+            for (var i = 0; i < deck.length; i++) {
+                deck[i].draw();
+            }
+        }
+    </script>
+</head>
+<body onload="init()">
+    <canvas id="canvas" width="900" height="400"></canvas>
+    <form name="f">
+        匹配对数：<input type="text" name="count" value="0" size="1" />
+        
+        耗时：<input type="text" name="elapsed" value="" size="4" />seconds
+
+        <input type="button" value="重新开始" onclick="window.location.reload()" />
+    </form>
+</body>
+</html>

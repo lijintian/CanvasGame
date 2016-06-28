@@ -39,23 +39,45 @@
             this.fillstyle = stylestring;
         }
 
+        var tokenDinamyInterval;
 
         //绘制多边形
         function drawtoken() {
-            ctx.fillStyle = this.fillstyle;
+            window.clearInterval(tokenDinamyInterval);
+            drawDinamyToken(this)
+            tokenDinamyInterval=setInterval(drawDinamyToken, 1000, this);
+        }
+
+        function drawDinamyToken(token)
+        {
+            debugger;
+          
+
+          
             var i;
-            var rad = this.rad;
+            var rad = token.rad;
+          
+
+            //ctx.clearRect(token.sx - rad, token.sy + rad, rad * 4, rad * 4);
+
+            //ctx.strokeStyle = "red";
+            //ctx.moveTo(token.sx - rad, token.sy - rad);
+            //ctx.lineTo(token.sx + rad, token.sy + rad);
+            //ctx.stroke();
+
+            ctx.clearRect(token.sx - rad, token.sy - rad, rad * 2, rad * 2);
+
+            ctx.fillStyle = token.fillstyle;
             ctx.beginPath();
+            var ran = Math.random();
 
-            var ran=Math.random();
-
-            var startX = this.sx + rad * Math.cos(-ran * this.angle);
-            var startY = this.sy + rad * Math.sin(-ran * this.angle);
+            var startX = token.sx + rad * Math.cos(-ran * token.angle);
+            var startY = token.sy + rad * Math.sin(-ran * token.angle);
             ctx.moveTo(startX, startY);
 
-            for (i = 1; i < this.n; i++) {
-                var lineToX = this.sx + rad * Math.cos((i - ran) * this.angle);
-                var lineToY = this.sy + rad * Math.sin((i - ran) * this.angle);
+            for (i = 1; i < token.n; i++) {
+                var lineToX = token.sx + rad * Math.cos((i - ran) * token.angle);
+                var lineToY = token.sy + rad * Math.sin((i - ran) * token.angle);
                 ctx.lineTo(lineToX, lineToY);
             }
 

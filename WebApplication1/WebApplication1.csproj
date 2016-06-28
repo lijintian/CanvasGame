@@ -68,7 +68,21 @@
   <ItemGroup>
     <Content Include="DrawingBoard\DrawingBoard.html" />
     <Content Include="MazeGame\MazeGame.html" />
+    <Content Include="MazeGame\MazeGameWithSource.html" />
+    <Content Include="MazeGame\Source\Body.png" />
+    <Content Include="MazeGame\Source\LegLeft.png" />
+    <Content Include="MazeGame\Source\LegRight.png" />
+    <Content Include="MazeGame\Source\Wall.png" />
     <Content Include="MemoryGame\MemoryGame.html" />
+    <Content Include="MemoryGame\MemoryGameWithSource.html" />
+    <Content Include="MemoryGame\Source\11.png" />
+    <Content Include="MemoryGame\Source\12.png" />
+    <Content Include="MemoryGame\Source\21.png" />
+    <Content Include="MemoryGame\Source\22.png" />
+    <Content Include="MemoryGame\Source\31.png" />
+    <Content Include="MemoryGame\Source\32.png" />
+    <Content Include="MemoryGame\Source\41.png" />
+    <Content Include="MemoryGame\Source\42.png" />
     <Content Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -84,9 +98,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="MemoryGame\Source\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

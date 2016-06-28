@@ -1,0 +1,456 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <meta charset="utf-8" />
+    <script type="text/javascript">
+        //保存画布尺寸
+        var cwidth = 900;
+        var cheight = 350;
+
+        var ctx;
+
+        //保存所有对象
+        var everything = [];
+        //当前墙
+        var curwall;
+        //墙宽
+        var wallwidth = 15;
+        //墙的颜色
+        var wallstyle = "red";
+        //所有墙
+        var walls = [];
+        //标示正在通过拖动鼠标构建墙
+        var inmotion = false;
+        //token移动单位
+        var unit = 10;
+
+        //token类
+        function Token(sx, sy, rad, stylestring, n)
+        {
+            this.sx = sx;
+            this.sy = sy;
+            this.rad = rad;
+            this.draw = drawtoken;
+            this.n = n;
+            this.angle = (2 * Math.PI) / n;
+            this.moveit = movetoken;
+            this.fillstyle = stylestring;
+            this.bodyImg = "Source/Body.png";
+            this.legLeft = "Source/LegLeft.png";
+            this.legRight = "Source/LegRight.png";
+        }
+
+        var tokenDinamyInterval;
+
+        //绘制多边形
+        function drawtoken() {
+            drawBody(this)
+            window.clearInterval(tokenDinamyInterval);
+            drawLeg(this)
+            tokenDinamyInterval = setInterval(drawLeg, 1000, this);
+        }
+
+        function drawBody(token)
+        {
+            var rad=token.rad;
+            var tokenX=token.sx;
+            var tokenY=token.sy;
+            drawImg(token.bodyImg,tokenX-rad,tokenY-rad,rad*2,rad)
+        }
+
+        var isLeft = true;
+
+        function drawLeg(token)
+        {
+            var i;
+            var rad = token.rad;
+
+            ctx.clearRect(token.sx - rad, token.sy, rad * 2, rad);
+
+            var legX=token.sx-rad/2;
+            var legY=token.sy;
+
+            var legWidth=rad;
+            var legHeigth=rad;
+
+            if (isLeft) {
+                drawImg(token.legLeft, legX, legY, legWidth, legHeigth);
+            }
+            else {
+                drawImg(token.legRight, legX, legY, legWidth, legHeigth);
+            }
+            isLeft = !isLeft;
+
+            ctx.fill();
+        }
+
+
+        function drawImg(src,x,y,width,height) {
+            var image = new Image();
+            image.src = src;
+            image.onload = function () {
+                ctx.drawImage(image, x, y, width, height);
+            }
+        }
+
+
+        function movetoken(dx, dy)
+        {
+            this.sx += dx;
+            this.sy += dy;
+
+            var i;
+            var wall;
+            for (i = 0; i < walls.length; i++)
+            {//和所有的墙检测是否相交
+                wall = walls[i];
+                if (intersect(wall.sx, wall.sy, wall.fx, wall.fy, this.sx, this.sy, this.rad))
+                {//和墙碰撞，回到原位
+                    this.sx -= dx;
+                    this.sy -= dy;
+                    break;
+                }
+            }
+        }
+
+        function Wall(sx, sy, fx, fy, width, stylestring)
+        {
+            this.sx = sx;
+            this.sy = sy;
+            this.fx = fx;
+            this.fy = fy;
+            this.width = width;
+            this.draw = drawAline;
+            this.strokestyle = stylestring;
+            this.wallImg = "Source/Wall.png"
+        }
+
+        function Point(sx,sy)
+        {
+            this.sx = sx;
+            this.sy = sy;
+        }
+
+        function CalculateNextStartPoint(x1,y1,x2,y2,w)
+        {
+            //(y1-y2)/(x2-x1)=w/?
+            //(y1-y2)*?=(x2-x1)*w
+            //
+
+            //相交的高度
+
+            var cutHeight=0;
+
+            if (y1 != y2) {
+                if (y1 > y2) {
+                    cutHeight = (y1 - y2) * w / (x2 - x1);
+
+                }
+                else if (y2 > y1) {
+                    cutHeight = (y2 - y1) * w / (x2 - x1);
+                }
+            }
+            return cutHeight;
+        }
+
+        var wallUnitLength = 20;
+
+        function drawAline() {
+            var x1 = this.sx;
+            var y1 = this.sy;
+            var x2 = this.fx;
+            var y2 = this.fy;
+
+            if (this.sx > this.fx) {
+                x1 = this.fx;
+                y1 = this.fy;
+                x2 = this.sx;
+                y2 = this.sy;
+            }
+
+            var height = CalculateNextStartPoint(x1, y1, x2, y2, this.width);
+
+            var newX = x1;
+            var newY = y1;
+
+            var count = (x2 - x1) / this.width;
+            if ((x2-x1)/this.width<=1)
+            {
+                if (y1 > y2) {
+                    count = (y1 - y2) / this.width;
+                }
+                else {
+                    count = (y2 - y1) / this.width;
+                }
+                
+            }
+
+            for (var i = 1; i < count; i++) {
+                drawImg(this.wallImg, newX, newY, this.width, this.width);
+
+
+                if ((x2 - x1) / this.width <= 1) {
+                    height = this.width;
+                }
+                else {
+                    newX = newX + this.width;
+                }
+
+                if (y1 > y2) {
+                    newY = newY - height;
+                }
+                else if (y1 < y2) {
+                    newY = newY + height;
+                }
+
+
+            }
+        }
+
+        var mypent = new Token(100, 100, 20, "blue", 5);
+
+        everything.push(mypent);
+
+        function init()
+        {
+            ctx = document.getElementById("canvas").getContext("2d");
+
+            var canvas1 = document.getElementById("canvas");
+            canvas1.addEventListener("mousedown", startwall, false);
+            canvas1.addEventListener("mousemove", stretchwall, false);
+            canvas1.addEventListener("mouseup", finish, false);
+
+            window.addEventListener("keydown", getKeyAndMove, false);
+
+            drawAll();
+
+        }
+
+        function startwall(ev)
+        {
+            var mx;
+            var my;
+
+            if (ev.layerX || ev.layerX == 0)
+            {
+                mx = ev.layerX;
+                my = ev.layerY;
+            }
+            else if(ev.offsetX||ev.offsetX==0){
+                mx = ev.offsetX;
+                my = ev.offsetY;
+            }
+
+            curwall = new Wall(mx, my, mx + 1, my + 1, wallwidth, wallstyle);
+
+            inmotion = true;
+
+            everything.push(curwall);
+            drawAll();
+        }
+
+        function stretchwall(ev)
+        {
+            if (inmotion)
+            {
+                var mx;
+                var my;
+                if (ev.layerX || ev.layerX == 0) {
+                    mx = ev.layerX;
+                    my = ev.layerY;
+                }
+                else if (ev.offsetX || ev.offsetX == 0) {
+                    mx = ev.offsetX;
+                    my = ev.offsetY;
+                }
+
+                curwall.fx = mx;
+                curwall.fy = my;
+
+                drawAll();
+            }
+        }
+
+        function finish(ev)
+        {
+            inmotion = false;
+            walls.push(curwall);
+        }
+
+        function drawAll() {
+            ctx.clearRect(0, 0, cwidth, cheight);
+            var i;
+            for (i = 0; i < everything.length; i++)
+            {
+                everything[i].draw();
+            }
+        }
+
+        function getKeyAndMove(event)
+        {
+            var keyCode;
+            if (event == null) {
+                keyCode = window.event.keyCode;
+                window.event.preventDefault();//停止默认动作
+            }
+            else {
+                keyCode = event.keyCode;
+                event.preventDefault();//停止默认动作
+            }
+
+            switch (keyCode)
+            {
+                case 37://←
+                    mypent.moveit(-unit, 0);
+                    break;
+                case 38://↑
+                    mypent.moveit(0, -unit);
+                    break
+                case 39://→
+                    mypent.moveit(unit, 0);
+                    break
+                case 40://↓
+                    mypent.moveit(0, unit);
+                    break
+                default:
+                    window.removeEventListener("keydown", getKeyAndMove, false);
+                    break
+            }
+
+            drawAll();
+        }
+
+        //判断圆和线是否相交
+        function intersect(sx, sy, fx, fy, cx, cy, rad)
+        {
+            //中间值
+            var dx;
+            var dy;
+
+            var t;
+            var rt;
+
+            dx = fx - sx;
+            dy = fy - sy;
+
+            t = 0.0 - ((sx - cx) * dx + (sy - cy) * dy) / ((dx * dx) + (dy * dy));
+            if (t < 0.0)
+            {
+                t = 0.0;
+            }
+            else if (t > 1.0)
+            {
+                t = 1.0;
+            }
+
+            dx = (sx + t * (fx - sx)) - cx;
+            dy = (sy + t * (fy - sy)) - cy;
+
+            rt = (dx * dx) + (dy * dy);
+
+            if (rt < (rad * rad)) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        function savewalls()
+        {
+            var w = [];
+            var allw = [];
+            var sw;
+            var onewall;
+            var i;
+            var lsname = document.sf.slname.value;
+
+            for (i = 0; i < walls.length; i++)
+            {
+                w.push(walls[i].sx);
+                w.push(walls[i].sy);
+                w.push(walls[i].fx);
+                w.push(walls[i].fy);
+                onewall = w.join("+");
+                allw.push(onewall);
+                w = [];
+            }
+
+            sw = allw.join(";");
+
+            try {
+                localStorage.setItem(lsname,sw);
+            }
+            catch (e)
+            {
+                alert("data not saved,error:" + e);
+            }
+
+            return false;
+        }
+
+        function getwalls() {
+            var swalls;
+            var sw;
+            var i;
+            var i;
+            var sx;
+            var sy;
+            var fx;
+            var fy;
+
+            var curwall;
+            debugger;
+            var lsname = document.gf.glname.value;
+
+            swalls = localStorage.getItem(lsname);
+            if (swalls != null) {
+                var wallstgs = swalls.split(";");
+                for (i = 0; i < wallstgs.length; i++) {
+                    sw = wallstgs[i].split("+");
+                    sx = Number(sw[0]);
+                    sy = Number(sw[1]);
+                    fx = Number(sw[2]);
+                    fy = Number(sw[3]);
+
+                    curwall = new Wall(sx, sy, fx, fy, wallwidth, wallstyle);
+
+                    walls.push(curwall);
+
+                    everything.push(curwall);
+                }
+                drawAll();
+            }
+            else {
+                alert("localStorage没有迷宫");
+            }
+
+            window.addEventListener("keydown", getKeyAndMove, false);
+
+            return false;
+        }
+
+    </script>
+</head>
+<body onload="init()">
+    <canvas id="canvas" width="900" height="600" style="border:1px solid black">
+        Your browser doesn't support the HTML5 element canvas.
+    </canvas>
+    <br />
+    <form name="sf" onsubmit="return savewalls()">
+        输入地图名字保存地图
+        <br />
+        Name:<input type="text" name="slname" value="maze_name" />
+        <input type="submit" value="SAVE WALLS" />
+    </form>
+
+    <form name="gf" onsubmit="return getwalls()">
+        输入地图名字获取地图
+        <br />
+        Name:<input type="text" name="glname" value="maze_name" />
+        <input type="submit" value="GET WALLS" />
+    </form>
+</body>
+</html>

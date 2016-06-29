@@ -7,7 +7,7 @@
     <script type="text/javascript">
         //保存画布尺寸
         var cwidth = 900;
-        var cheight = 350;
+        var cheight = 600;
 
         var ctx;
 
@@ -24,11 +24,14 @@
         //标示正在通过拖动鼠标构建墙
         var inmotion = false;
         //token移动单位
-        var unit = 10;
+        var unit = 5;
+
+
 
         //token类
-        function Token(sx, sy, rad, stylestring, n)
+        function Token(sx, sy, rad, stylestring, n,direct)
         {
+            this.direct = direct;
             this.sx = sx;
             this.sy = sy;
             this.rad = rad;
@@ -37,19 +40,19 @@
             this.angle = (2 * Math.PI) / n;
             this.moveit = movetoken;
             this.fillstyle = stylestring;
-            this.bodyImg = "Source/Body.png";
-            this.legLeft = "Source/LegLeft.png";
-            this.legRight = "Source/LegRight.png";
+           
+            this.bodyImg =  "Source/role.gif";
+            this.legs = ["Source/LegLeft.png", "Source/LegRight.png"]
+            this.changeDirect = changeDirect;
         }
 
         var tokenDinamyInterval;
 
         //绘制多边形
         function drawtoken() {
-            drawBody(this)
-            window.clearInterval(tokenDinamyInterval);
-            drawLeg(this)
-            tokenDinamyInterval = setInterval(drawLeg, 1000, this);
+            var imgs = document.getElementById("imgRole");
+
+            ctx.drawImage(imgs, 400, 200, 250, 500, this.sx - this.rad/2, this.sy - this.rad, this.rad , this.rad * 2)
         }
 
         function drawBody(token)
@@ -57,10 +60,29 @@
             var rad=token.rad;
             var tokenX=token.sx;
             var tokenY=token.sy;
-            drawImg(token.bodyImg,tokenX-rad,tokenY-rad,rad*2,rad)
+            drawImg(token.bodyImg,tokenX-rad,tokenY-rad,rad*2,rad*2)
         }
 
-        var isLeft = true;
+        function changeDirect()
+        {
+            switch (this.direct)
+            {
+                case "left":  
+                    this.legs = ["Source/LeftLeftLeg.png", "Source/LeftRightLeg.png"]
+                    break;
+                case "right":
+                    this.legs = ["Source/RightLeg1.png", "Source/RightLeg2.png", "Source/RightLeg3.png", "Source/RightLeg4.png"]
+                    break;
+                case "front":
+                    this.legs = ["Source/LegLeft.png", "Source/LegRight.png"]
+                    break;
+                case "back":
+                    this.legs = ["Source/LegLeft.png", "Source/LegRight.png"]
+                    break;
+            }
+        }
+
+        var legIndex = 0;
 
         function drawLeg(token)
         {
@@ -75,24 +97,21 @@
             var legWidth=rad;
             var legHeigth=rad;
 
-            if (isLeft) {
-                drawImg(token.legLeft, legX, legY, legWidth, legHeigth);
+            if (legIndex < token.legs.length) {
+                drawImg(token.legs[legIndex], legX, legY, legWidth, legHeigth);
             }
             else {
-                drawImg(token.legRight, legX, legY, legWidth, legHeigth);
+                drawImg(token.legs[0], legX, legY, legWidth, legHeigth);
+                legIndex = 0;
             }
-            isLeft = !isLeft;
+            legIndex++;
 
             ctx.fill();
         }
 
 
-        function drawImg(src,x,y,width,height) {
-            var image = new Image();
-            image.src = src;
-            image.onload = function () {
+        function drawImg(image,x,y,width,height) {
                 ctx.drawImage(image, x, y, width, height);
-            }
         }
 
 
@@ -209,7 +228,7 @@
             }
         }
 
-        var mypent = new Token(100, 100, 20, "blue", 5);
+        var mypent = new Token(100, 100, 50, "blue", 5,"front");
 
         everything.push(mypent);
 
@@ -281,6 +300,10 @@
 
         function drawAll() {
             ctx.clearRect(0, 0, cwidth, cheight);
+
+            ctx.fillstyle = "rgba(35, 35, 35, 1)";
+            ctx.fillRect(0, 0, cwidth, cheight);
+
             var i;
             for (i = 0; i < everything.length; i++)
             {
@@ -300,18 +323,46 @@
                 event.preventDefault();//停止默认动作
             }
 
+            var direct = "left";
+
             switch (keyCode)
             {
                 case 37://←
+                    direct = "left";
+
+                    if (mypent.direct != direct)
+                    {
+                        mypent.direct = direct;
+                        mypent.changeDirect();
+                    }
+                   
                     mypent.moveit(-unit, 0);
                     break;
                 case 38://↑
+                    direct = "back";
+
+                    if (mypent.direct != direct) {
+                        mypent.direct = direct;
+                        mypent.changeDirect();
+                    }
                     mypent.moveit(0, -unit);
                     break
                 case 39://→
+                    direct = "right";
+
+                    if (mypent.direct != direct) {
+                        mypent.direct = direct;
+                        mypent.changeDirect();
+                    }
                     mypent.moveit(unit, 0);
                     break
                 case 40://↓
+                    direct = "front";
+
+                    if (mypent.direct != direct) {
+                        mypent.direct = direct;
+                        mypent.changeDirect();
+                    }
                     mypent.moveit(0, unit);
                     break
                 default:
@@ -451,6 +502,7 @@
         <br />
         Name:<input type="text" name="glname" value="maze_name" />
         <input type="submit" value="GET WALLS" />
+        <img src="Source/role.gif" id="imgRole" width="0" height="0"/>
     </form>
 </body>
 </html>

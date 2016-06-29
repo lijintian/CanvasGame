@@ -66,12 +66,26 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="DrawGif\DrawGif.html" />
     <Content Include="DrawingBoard\DrawingBoard.html" />
+    <Content Include="HandGame\Source\FiveFinger.png" />
+    <Content Include="HandGame\Source\NoFinger.png" />
+    <Content Include="HandGame\Source\TwoFinger.png" />
     <Content Include="MazeGame\MazeGame.html" />
     <Content Include="MazeGame\MazeGameWithSource.html" />
     <Content Include="MazeGame\Source\Body.png" />
+    <Content Include="MazeGame\Source\LeftBody.png" />
+    <Content Include="MazeGame\Source\LeftLeftLeg.png" />
+    <Content Include="MazeGame\Source\LeftRightLeg.png" />
     <Content Include="MazeGame\Source\LegLeft.png" />
     <Content Include="MazeGame\Source\LegRight.png" />
+    <Content Include="MazeGame\Source\RightBody.png" />
+    <Content Include="MazeGame\Source\RightLeg1.png" />
+    <Content Include="MazeGame\Source\RightLeg2.png" />
+    <Content Include="MazeGame\Source\RightLeg3.png" />
+    <Content Include="MazeGame\Source\RightLeg4.png" />
+    <Content Include="MazeGame\Source\role.gif" />
+    <Content Include="MazeGame\Source\Role.png" />
     <Content Include="MazeGame\Source\Wall.png" />
     <Content Include="MemoryGame\MemoryGame.html" />
     <Content Include="MemoryGame\MemoryGameWithSource.html" />

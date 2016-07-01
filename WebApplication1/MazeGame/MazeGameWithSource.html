@@ -206,8 +206,10 @@
                 
             }
 
+            var wallImg = document.getElementById("imgWall");
+
             for (var i = 1; i < count; i++) {
-                drawImg(this.wallImg, newX, newY, this.width, this.width);
+                drawImg(wallImg, newX, newY, this.width, this.width);
 
 
                 if ((x2 - x1) / this.width <= 1) {
@@ -301,8 +303,8 @@
         function drawAll() {
             ctx.clearRect(0, 0, cwidth, cheight);
 
-            ctx.fillstyle = "rgba(35, 35, 35, 1)";
-            ctx.fillRect(0, 0, cwidth, cheight);
+            //ctx.fillstyle = "rgba(35, 35, 35, 1)";
+            //ctx.fillRect(0, 0, cwidth, cheight);
 
             var i;
             for (i = 0; i < everything.length; i++)
@@ -503,6 +505,7 @@
         Name:<input type="text" name="glname" value="maze_name" />
         <input type="submit" value="GET WALLS" />
         <img src="Source/role.gif" id="imgRole" width="0" height="0"/>
+        <img src="Source/Wall.png" id="imgWall" width="0" height="0"/>
     </form>
 </body>
 </html>

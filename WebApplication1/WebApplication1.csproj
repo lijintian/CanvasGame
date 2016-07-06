@@ -71,6 +71,7 @@
     <Content Include="HandGame\Source\FiveFinger.png" />
     <Content Include="HandGame\Source\NoFinger.png" />
     <Content Include="HandGame\Source\TwoFinger.png" />
+    <Content Include="Reactive\TestFloat.html" />
     <Content Include="MazeGame\MazeGame.html" />
     <Content Include="MazeGame\MazeGameWithSource.html" />
     <Content Include="MazeGame\Source\Body.png" />
